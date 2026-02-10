@@ -1,0 +1,88 @@
+sistema-legal-app/
+├── README.md                      # Documentación principal
+├── LICENSE                        # Licencia MIT
+├── CHANGELOG.md                   # Historial de cambios
+├── CONTRIBUTING.md                # Guía de contribución
+├── .gitignore                     # Archivos ignorados por git
+├── setup.sh                       # Script de instalación
+├── deploy.sh                      # Script de despliegue
+├
+├── backend/                       # API Node.js + Express
+│   ├── src/
+│   │   ├── index.ts              # Punto de entrada
+│   │   ├── config/               # Configuraciones
+│   │   │   ├── database.config.ts
+│   │   │   ├── logger.config.ts
+│   │   │   └── s3.config.ts
+│   │   ├── controllers/          # Controladores
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── cases.controller.ts
+│   │   │   ├── documents.controller.ts
+│   │   │   ├── users.controller.ts
+│   │   │   └── stats.controller.ts
+│   │   ├── routes/               # Rutas API
+│   │   │   ├── auth.routes.ts
+│   │   │   ├── cases.routes.ts
+│   │   │   ├── documents.routes.ts
+│   │   │   ├── users.routes.ts
+│   │   │   └── stats.routes.ts
+│   │   ├── middleware/           # Middleware
+│   │   │   ├── auth.middleware.ts
+│   │   │   ├── error.middleware.ts
+│   │   │   ├── validation.middleware.ts
+│   │   │   └── rateLimiter.middleware.ts
+│   │   ├── types/                # TypeScript types
+│   │   │   └── index.ts
+│   │   └── utils/                # Utilidades
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── .env.example
+│   └── .eslintrc.json
+│
+├── frontend/                      # React + TypeScript
+│   ├── src/
+│   │   ├── main.tsx              # Punto de entrada
+│   │   ├── App.tsx               # Componente principal
+│   │   ├── index.css             # Estilos globales
+│   │   ├── components/           # Componentes React
+│   │   │   └── Layout.tsx
+│   │   ├── pages/                # Páginas
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── CasesPage.tsx
+│   │   │   ├── DocumentsPage.tsx
+│   │   │   ├── UsersPage.tsx
+│   │   │   └── ProfilePage.tsx
+│   │   ├── services/             # API calls
+│   │   │   └── api.ts
+│   │   ├── store/                # Zustand stores
+│   │   │   └── authStore.ts
+│   │   ├── types/                # TypeScript types
+│   │   │   └── index.ts
+│   │   └── utils/                # Utilidades
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
+│   ├── .env.example
+│   ├── index.html
+│   └── .eslintrc.json
+│
+├── database/                      # Scripts de BD
+│   ├── migrations/               # Migraciones
+│   │   └── 001_initial_schema.sql
+│   └── seeds/                    # Datos de prueba
+│       └── 001_sample_data.sql
+│
+├── docker/                        # Docker configuration
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   ├── docker-compose.yml
+│   └── nginx.conf
+│
+├── jenkins/                       # CI/CD
+│   └── Jenkinsfile
+│
+└── docs/                          # Documentación adicional
+    ├── AWS_RDS_MIGRATION.md
+    └── EC2_DEPLOYMENT.md
