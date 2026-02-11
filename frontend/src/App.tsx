@@ -24,7 +24,7 @@ function App() {
       }>
         <Route index element={<DashboardPage />} />
         <Route path="cases" element={<CasesPage />} />
-        <Route path="documents" element={<DocumentsPage />} />
+       <Route path="documents" element={<DocumentsPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="profile" element={<ProfilePage />} />
       </Route>

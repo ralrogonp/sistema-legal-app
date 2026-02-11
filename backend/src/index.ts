@@ -12,6 +12,7 @@ import documentsRoutes from './routes/documents.routes';
 import usersRoutes from './routes/users.routes';
 import versionsRoutes from './routes/versions.routes';
 import statsRoutes from './routes/stats.routes';
+import s3Routes from './routes/s3.routes';
 
 // Import middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -60,6 +61,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/cases', casesRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/s3', s3Routes);
 app.use('/api/users', usersRoutes);
 app.use('/api/versions', versionsRoutes);
 app.use('/api/stats', statsRoutes);
