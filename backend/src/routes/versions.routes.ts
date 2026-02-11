@@ -1,25 +1,11 @@
-import express from 'express'
-import { protect } from '../middleware/auth.middleware'
-import { 
-  getVersions, 
-  getVersion, 
-  createVersion,
-  compareVersions 
-} from '../controllers/versions.controller'
+import { Router } from 'express';
+import { authenticate } from '../middleware/auth.middleware';
 
-const router = express.Router({ mergeParams: true })
+const router = Router();
 
-// Todas las rutas requieren autenticación
-router.use(protect)
+router.use(authenticate);
 
-router.route('/')
-  .get(getVersions)
-  .post(createVersion)
+// Aquí puedes agregar rutas para versiones en el futuro
+// router.get('/:caseId', getVersionsController);
 
-router.route('/compare')
-  .get(compareVersions)
-
-router.route('/:versionId')
-  .get(getVersion)
-
-export default router
+export default router;

@@ -196,14 +196,14 @@ export const createCase = asyncHandler(async (req: AuthRequest, res: Response) =
   const numero_caso = generateCaseNumber(categoria);
 
   const result = await query(
-    `INSERT INTO casos (
-      numero_caso, categoria, cliente, descripcion, monto, 
-      estado, creado_por, fecha_creacion, fecha_ultima_actualizacion, version_actual
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 1)
-    RETURNING *`,
-    [numero_caso, categoria, cliente, descripcion, monto || 0, CaseStatus.PENDIENTE, user.id]
-  );
+  `INSERT INTO casos (
+    numero_caso, categoria, cliente, descripcion, monto, 
+    estado, creado_por, fecha_creacion, fecha_ultima_actualizacion, version_actual
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 1)
+  RETURNING *`,
+  [numero_caso, categoria, cliente, descripcion, monto || 0, 'PENDIENTE', user.id]
+);
 
   const caso = result.rows[0];
 
