@@ -1,19 +1,4 @@
-import { Request } from 'express';
-
-// User types
-export interface User {
-  id: number;
-  email: string;
-  nombre_completo: string;
-  password_hash?: string;
-  role: UserRole;
-  atlassian_id?: string;
-  github_username?: string;
-  activo: boolean;
-  invitation_sent: boolean;
-  invitation_token?: string;
-  fecha_creacion: Date;
-}
+import { Request } from 'express'
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -21,121 +6,106 @@ export enum UserRole {
   JURIDICO = 'JURIDICO'
 }
 
-// Case types
-export interface Case {
-  id: number;
-  numero_caso: string;
-  categoria: CaseCategory;
-  cliente: string;
-  descripcion: string;
-  estado: CaseStatus;
-  monto: number;
-  creado_por: number;
-  fecha_creacion: Date;
-  fecha_ultima_actualizacion: Date;
-  version_actual: number;
+export enum CaseStatus {
+  ABIERTO = 'ABIERTO',
+  EN_PROCESO = 'EN_PROCESO',
+  CERRADO = 'CERRADO'
 }
 
-export enum CaseCategory {
+export enum CaseType {
   CONTABLE = 'CONTABLE',
   JURIDICO = 'JURIDICO'
 }
 
-export enum CaseStatus {
-  PENDIENTE = 'PENDIENTE',
-  EN_PROCESO = 'EN_PROCESO',
-  COMPLETADO = 'COMPLETADO',
-  RECHAZADO = 'RECHAZADO'
+export interface User {
+  id: number
+  email: string
+  nombre_completo: string
+  password_hash?: string
+  role: UserRole
+  activo: boolean
+  puede_gestionar_s3?: boolean
+  fecha_creacion: string
 }
 
-// Document types
-export interface Document {
-  id: number;
-  caso_id: number;
-  nombre_archivo: string;
-  tipo_documento: string;
-  tamano: number;
-  s_3_key: string;
-  s_3_url: string;
-  subido_por: number;
-  fecha_subida: Date;
+export interface Case {
+  id: number
+  numero_caso: string
+  tipo_caso: CaseType
+  titulo: string
+  descripcion: string
+  estado: CaseStatus
+  cliente_nombre: string
+  cliente_rfc?: string
+  version_actual: number
+  creado_por: number
+  asignado_a?: number
+  fecha_creacion: string
+  fecha_actualizacion: string
 }
 
-// Case Version types
 export interface CaseVersion {
-  id: number;
-  caso_id: number;
-  version_numero: number;
-  estado_anterior: CaseStatus;
-  estado_nuevo: CaseStatus;
-  cambios_realizados: string;
-  comentarios?: string;
-  actualizado_por: number;
-  fecha_actualizacion: Date;
+  id: number
+  caso_id: number
+  version: number
+  descripcion_cambios: string
+  actualizado_por: number
+  fecha_version: string
+  datos_snapshot: any
 }
 
-// Request with user
-export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    role: UserRole;
-  };
+export interface CaseDocument {
+  id: number
+  caso_id: number
+  version_id?: number
+  nombre_archivo: string
+  s3_key: string
+  s3_url: string
+  tipo_archivo: string
+  tamano_bytes: number
+  subido_por: number
+  fecha_subida: string
+  notas?: string
 }
 
-// API Response types
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
+export interface S3Folder {
+  id: number
+  nombre: string
+  ruta_completa: string
+  carpeta_padre_id?: number
+  creado_por: number
+  fecha_creacion: string
+  descripcion?: string
 }
 
-export interface PaginatedResponse<T> extends ApiResponse<T> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+export interface S3File {
+  id: number
+  carpeta_id?: number
+  nombre_archivo: string
+  s3_key: string
+  s3_url: string
+  tipo_archivo: string
+  tamano_bytes: number
+  subido_por: number
+  fecha_subida: string
+  metadata?: any
 }
 
-// Statistics types
-export interface CaseStats {
-  total: number;
-  active: number;
-  pending: number;
-  completed: number;
-  rejected: number;
-  by_category: {
-    CONTABLE: number;
-    JURIDICO: number;
-  };
-}
-
-// Filter types
-export interface CaseFilters {
-  categoria?: CaseCategory;
-  estado?: CaseStatus;
-  cliente?: string;
-  fecha_inicio?: Date;
-  fecha_fin?: Date;
-  creado_por?: number;
-}
-
-// JWT Payload
 export interface JWTPayload {
-  id: number;
-  email: string;
-  role: UserRole;
+  id: number
+  email: string
+  role: UserRole
 }
 
-// File upload
-export interface FileUploadResult {
-  key: string;
-  url: string;
-  bucket: string;
-  filename: string;
-  size: number;
-  mimetype: string;
+export interface AuthRequest extends Request {
+  user?: JWTPayload
+}
+
+export interface CaseStats {
+  total: number
+  abiertos: number
+  en_proceso: number
+  cerrados: number
+  contables: number
+  juridicos: number
 }
