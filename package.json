@@ -1,0 +1,15 @@
+{
+  "name": "sistema-legal-app",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestión de casos legales con gestión de documentos en S3, control de versiones y administración de usuarios.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
