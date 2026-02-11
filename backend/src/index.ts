@@ -63,6 +63,7 @@ app.use('/api/documents', documentsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/versions', versionsRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/cases/:caseId/versions', versionsRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
