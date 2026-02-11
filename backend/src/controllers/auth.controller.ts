@@ -1,20 +1,20 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken'; 
 import { query } from '../config/database.config';
 import { User, JWTPayload, AuthRequest } from '../types';
 import { asyncHandler } from '../middleware/error.middleware';
 import { logger } from '../config/logger.config';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'f0313bedc04149d96ad054937e68adeba6d4877c59839c42448a5724bb492269680444c8893ed6780b3a5d0796a79c92af29efd478456aa36f27c449312b63d8';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 // Generate JWT token
 const generateToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN
-  });
+  // @ts-ignore
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
+
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -168,7 +168,7 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
   const { nombre_completo, atlassian_id, github_username } = req.body;
 
   const result = await query(
-    `UPDATE users 
+    `UPDATE users
      SET nombre_completo = COALESCE($1, nombre_completo),
          atlassian_id = COALESCE($2, atlassian_id),
          github_username = COALESCE($3, github_username)
