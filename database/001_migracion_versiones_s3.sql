@@ -67,6 +67,7 @@ END $$;
 ALTER TABLE casos ADD COLUMN IF NOT EXISTS titulo VARCHAR(255);
 ALTER TABLE casos ADD COLUMN IF NOT EXISTS version_actual INTEGER DEFAULT 1;
 ALTER TABLE casos ADD COLUMN IF NOT EXISTS asignado_a INTEGER REFERENCES users(id);
+ALTER TABLE caso_versiones ADD COLUMN IF NOT EXISTS cliente_rfc VARCHAR(255);
 
 -- ============================================
 -- 3. TABLA DE VERSIONES DE CASOS (NUEVA)

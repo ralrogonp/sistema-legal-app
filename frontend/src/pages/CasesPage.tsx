@@ -17,7 +17,6 @@ export default function CasesPage() {
   const [filterType, setFilterType] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
-  // Query para obtener casos
   const { data: cases, isLoading } = useQuery({
     queryKey: ['cases'],
     queryFn: () => casesAPI.getAll().then(res => res.data.data)
