@@ -18,5 +18,7 @@ router.post('/', validate([
 ]), casesController.createCase);
 router.put('/:id', casesController.updateCase);
 router.delete('/:id', authorize(UserRole.ADMIN), casesController.deleteCase);
-
+router.post('/:id/versions', casesController.addVersion);
+    router.post('/:id/comments', casesController.addComment);
+    router.get('/:id/timeline', casesController.getCaseTimeline);
 export default router;

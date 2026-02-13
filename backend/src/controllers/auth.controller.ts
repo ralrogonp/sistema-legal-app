@@ -2,36 +2,47 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken'; 
 import { query } from '../config/database.config';
-import { User, JWTPayload, AuthRequest } from '../types';
-import { asyncHandler } from '../middleware/error.middleware';
+import { User, JWTPayload, AuthRequest, EstadoRegistro } from '../types';
+import { asyncHandler, AppError } from '../middleware/error.middleware';
 import { logger } from '../config/logger.config';
+import { sendEmailNotification } from '../utils/emailService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'f0313bedc04149d96ad054937e68adeba6d4877c59839c42448a5724bb492269680444c8893ed6780b3a5d0796a79c92af29efd478456aa36f27c449312b63d8';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
-// Generate JWT token
 const generateToken = (payload: JWTPayload): string => {
   // @ts-ignore
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
 
+<<<<<<< HEAD
+// @desc    Registro público (sin rol asignado)
+=======
 
 // @desc    Register a new user
+>>>>>>> 6df542a8dd74d1f923e4064ea968b3449428af55
 // @route   POST /api/auth/register
 // @access  Public
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { email, nombre_completo, password, role } = req.body;
+  const { email, nombre_completo, password } = req.body;
 
-  // Check if user already exists
+  // Verificar si el usuario ya existe
   const existingUser = await query(
-    'SELECT id FROM users WHERE email = $1',
+    'SELECT id, estado_registro FROM users WHERE email = $1',
     [email]
   );
 
   if (existingUser.rows.length > 0) {
+    const user = existingUser.rows[0];
+    if (user.estado_registro === 'PENDIENTE') {
+      return res.status(400).json({
+        success: false,
+        error: 'Tu registro está pendiente de aprobación por un administrador'
+      });
+    }
     return res.status(409).json({
       success: false,
-      error: 'User already exists with this email'
+      error: 'Este email ya está registrado'
     });
   }
 
@@ -39,48 +50,72 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10);
   const password_hash = await bcrypt.hash(password, salt);
 
-  // Insert user
+  // Crear usuario con estado PENDIENTE y sin rol
   const result = await query(
-    `INSERT INTO users (email, nombre_completo, password_hash, role, activo, fecha_creacion)
-     VALUES ($1, $2, $3, $4, $5, NOW())
-     RETURNING id, email, nombre_completo, role, activo, fecha_creacion`,
-    [email, nombre_completo, password_hash, role || 'CONTABLE', true]
+    `INSERT INTO users (
+      email, nombre_completo, password_hash, 
+      role, activo, estado_registro, 
+      email_verificado, fecha_creacion
+    )
+    VALUES ($1, $2, $3, NULL, false, 'PENDIENTE', false, NOW())
+    RETURNING id, email, nombre_completo, estado_registro`,
+    [email, nombre_completo, password_hash]
   );
 
-  const user = result.rows[0];
+  const newUser = result.rows[0];
 
-  // Generate token
-  const token = generateToken({
-    id: user.id,
-    email: user.email,
-    role: user.role
+  // Notificar a administradores
+  await query(
+    `INSERT INTO notificaciones (usuario_id, caso_id, tipo, mensaje)
+     SELECT id, NULL, 'NUEVO_REGISTRO', $1
+     FROM users WHERE role = 'ADMIN'`,
+    [`Nuevo usuario registrado: ${email} - ${nombre_completo}`]
+  );
+
+  // Enviar email a admins (asíncrono)
+  setImmediate(async () => {
+    try {
+      const adminEmails = await query(
+        'SELECT email FROM users WHERE role = $1 AND activo = true',
+        ['ADMIN']
+      );
+      
+      for (const admin of adminEmails.rows) {
+        await sendEmailNotification({
+          to: admin.email,
+          subject: 'Nuevo usuario pendiente de aprobación',
+          template: 'nuevo-registro',
+          data: {
+            email: newUser.email,
+            nombre: newUser.nombre_completo
+          }
+        });
+      }
+    } catch (error) {
+      logger.error('Error enviando emails a admins:', error);
+    }
   });
 
-  logger.info(`New user registered: ${email}`);
+  logger.info(`Nuevo registro pendiente: ${email}`);
 
   res.status(201).json({
     success: true,
     data: {
-      user: {
-        id: user.id,
-        email: user.email,
-        nombre_completo: user.nombre_completo,
-        role: user.role,
-        activo: user.activo
-      },
-      token
+      id: newUser.id,
+      email: newUser.email,
+      nombre_completo: newUser.nombre_completo,
+      estado_registro: newUser.estado_registro
     },
-    message: 'User registered successfully'
+    message: 'Registro exitoso. Tu cuenta será activada por un administrador.'
   });
 });
 
-// @desc    Login user
+// @desc    Login
 // @route   POST /api/auth/login
 // @access  Public
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Find user
   const result = await query(
     'SELECT * FROM users WHERE email = $1',
     [email]
@@ -89,38 +124,51 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (result.rows.length === 0) {
     return res.status(401).json({
       success: false,
-      error: 'Invalid credentials'
+      error: 'Credenciales inválidas'
     });
   }
 
   const user: User = result.rows[0];
 
-  // Check if user is active
-  if (!user.activo) {
+  // Verificar estado de registro
+  if (user.estado_registro === 'PENDIENTE') {
     return res.status(403).json({
       success: false,
-      error: 'Account is deactivated'
+      error: 'Tu cuenta está pendiente de aprobación por un administrador'
     });
   }
 
-  // Verify password
+  if (user.estado_registro === 'INACTIVO' || !user.activo) {
+    return res.status(403).json({
+      success: false,
+      error: 'Tu cuenta ha sido desactivada. Contacta al administrador.'
+    });
+  }
+
+  // Verificar password
   const isPasswordValid = await bcrypt.compare(password, user.password_hash!);
 
   if (!isPasswordValid) {
     return res.status(401).json({
       success: false,
-      error: 'Invalid credentials'
+      error: 'Credenciales inválidas'
     });
   }
 
-  // Generate token
+  // Actualizar fecha de último acceso
+  await query(
+    'UPDATE users SET fecha_ultimo_acceso = NOW() WHERE id = $1',
+    [user.id]
+  );
+
+  // Generar token
   const token = generateToken({
     id: user.id,
     email: user.email,
     role: user.role
   });
 
-  logger.info(`User logged in: ${email}`);
+  logger.info(`Login exitoso: ${email}`);
 
   res.json({
     success: true,
@@ -134,25 +182,25 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       },
       token
     },
-    message: 'Login successful'
+    message: 'Login exitoso'
   });
 });
 
-// @desc    Get current user profile
+// @desc    Obtener perfil
 // @route   GET /api/auth/me
 // @access  Private
 export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
   const result = await query(
-    `SELECT id, email, nombre_completo, role, activo, atlassian_id, github_username, fecha_creacion
+    `SELECT 
+      id, email, nombre_completo, role, activo, 
+      estado_registro, email_verificado, fecha_creacion,
+      fecha_ultimo_acceso, puede_gestionar_s3
      FROM users WHERE id = $1`,
     [req.user!.id]
   );
 
   if (result.rows.length === 0) {
-    return res.status(404).json({
-      success: false,
-      error: 'User not found'
-    });
+    throw new AppError('Usuario no encontrado', 404);
   }
 
   res.json({
@@ -161,7 +209,7 @@ export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
   });
 });
 
-// @desc    Update user profile
+// @desc    Actualizar perfil
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -177,54 +225,49 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
     [nombre_completo, atlassian_id, github_username, req.user!.id]
   );
 
-  logger.info(`Profile updated for user: ${req.user!.email}`);
+  logger.info(`Perfil actualizado: ${req.user!.email}`);
 
   res.json({
     success: true,
     data: result.rows[0],
-    message: 'Profile updated successfully'
+    message: 'Perfil actualizado exitosamente'
   });
 });
 
-// @desc    Change password
+// @desc    Cambiar contraseña
 // @route   PUT /api/auth/password
 // @access  Private
 export const changePassword = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { currentPassword, newPassword } = req.body;
 
-  // Get user with password
   const result = await query(
     'SELECT password_hash FROM users WHERE id = $1',
     [req.user!.id]
   );
 
   const user = result.rows[0];
-
-  // Verify current password
   const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
 
   if (!isPasswordValid) {
     return res.status(401).json({
       success: false,
-      error: 'Current password is incorrect'
+      error: 'Contraseña actual incorrecta'
     });
   }
 
-  // Hash new password
   const salt = await bcrypt.genSalt(10);
   const password_hash = await bcrypt.hash(newPassword, salt);
 
-  // Update password
   await query(
     'UPDATE users SET password_hash = $1 WHERE id = $2',
     [password_hash, req.user!.id]
   );
 
-  logger.info(`Password changed for user: ${req.user!.email}`);
+  logger.info(`Contraseña cambiada: ${req.user!.email}`);
 
   res.json({
     success: true,
-    message: 'Password changed successfully'
+    message: 'Contraseña actualizada exitosamente'
   });
 });
 
