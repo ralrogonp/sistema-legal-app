@@ -10,6 +10,7 @@ import authRoutes from './routes/auth.routes';
 import casesRoutes from './routes/cases.routes';
 import documentsRoutes from './routes/documents.routes';
 import usersRoutes from './routes/users.routes';
+import bucketsRoutes from './routes/buckets.routes';
 import versionsRoutes from './routes/versions.routes';
 import statsRoutes from './routes/stats.routes';
 import s3Routes from './routes/s3.routes';
@@ -66,6 +67,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/versions', versionsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/cases/:caseId/versions', versionsRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/buckets', bucketsRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
