@@ -30,15 +30,20 @@ export default function Layout() {
                   Documentos
                 </Link>
                 {user?.role === 'ADMIN' && (
-      <>
-        <Link to="/users-admin" className="...">
-        Usuarios
-        </Link>
-        <Link to="/buckets-admin" className="...">
-          Buckets
-        </Link>
-      </>
-    )}
+                    <>
+                      <Link 
+                        to="/users-admin"
+                        className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700">
+                        Usuarios
+                      </Link>
+                      <Link 
+                        to="/buckets-admin"
+                        className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                      >
+                        Buckets
+                      </Link>
+                    </>
+                )}
               </div>
             </div>
             <div className="flex items-center">

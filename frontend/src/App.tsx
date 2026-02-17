@@ -5,8 +5,8 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CasesPage from './pages/CasesPage'
 import RegisterPage from './pages/RegisterPage'
-    import UsersAdminPage from './pages/UsersAdminPage'
-    import BucketsAdminPage from './pages/BucketsAdminPage'
+import UsersAdminPage from './pages/UsersAdminPage'
+import BucketsAdminPage from './pages/BucketsAdminPage'
 import DocumentsPage from './pages/DocumentsPage'
 import UsersPage from './pages/UsersPage'
 import ProfilePage from './pages/ProfilePage'
@@ -30,13 +30,17 @@ function App() {
        <Route path="documents" element={<DocumentsPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="profile" element={<ProfilePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-    <Route path="/" element={<Layout />}>
-      {/* rutas existentes... */}
-      <Route path="users-admin" element={<UsersAdminPage />} />
-      <Route path="buckets-admin" element={<BucketsAdminPage />} />
-      </Route>
-    </Routes>
+        {/* Rutas públicas */}
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* Rutas protegidas */}
+          <Route path="/" element={<Layout />}>
+            {/* ... otras rutas existentes ... */}
+            
+            {/* Nuevas rutas */}
+            <Route path="users-admin" element={<UsersAdminPage />} />
+            <Route path="buckets-admin" element={<BucketsAdminPage />} />
+          </Route>
   )
 }
 
